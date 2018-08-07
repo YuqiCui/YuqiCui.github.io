@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="CSDX0418">
 <meta property="og:description" content="在观察研究中减少数据偏倚：倾向评分（一）说在前面：本文主要参考的是文章An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies。因为本人是学人工智能的，不是学医的，有些医学概念可能翻译的不对，请大家谅解。写这篇文章一是为了给自己备忘，二是帮">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-08-07T09:23:39.906Z">
+<meta property="og:updated_time" content="2018-08-07T09:27:24.752Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在观察研究中减少数据偏倚：倾向评分（一）">
 <meta name="twitter:description" content="在观察研究中减少数据偏倚：倾向评分（一）说在前面：本文主要参考的是文章An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies。因为本人是学人工智能的，不是学医的，有些医学概念可能翻译的不对，请大家谅解。写这篇文章一是为了给自己备忘，二是帮">
@@ -305,15 +305,18 @@
 <li>Matching on the propensity score</li>
 <li>Stratification on the propensity score</li>
 <li>Inverse probability of treatment weighting using the propensity score (IPWPS)</li>
-<li>Covariate adjustment using the propensity score<h2 id="RCT与观察性研究"><a href="#RCT与观察性研究" class="headerlink" title="RCT与观察性研究"></a>RCT与观察性研究</h2>众所周知的是，Randomized controlled trials (RCTs) 经常被作为评价治疗方案、干涉和暴露影响的一个金标准。RCTs保证了在实验过程中，基线资料没有混淆的情况。也因此RCTs的结果也会经常用来比较治疗方案的结果。</li>
+<li>Covariate adjustment using the propensity score</li>
 </ol>
+<h2 id="RCT与观察性研究"><a href="#RCT与观察性研究" class="headerlink" title="RCT与观察性研究"></a>RCT与观察性研究</h2><p>众所周知的是，Randomized controlled trials (RCTs) 经常被作为评价治疗方案、干涉和暴露影响的一个金标准。RCTs保证了在实验过程中，基线资料没有混淆的情况。也因此RCTs的结果也会经常用来比较治疗方案的结果。</p>
 <p>但是RCTs在实际的应用过程中仍然存在着一些问题。第一个问题就是，RCTs由于它实验的设计需要严格的去挑选病人，本身就可能存在着选择偏倚，更由于研究者们通常倾向于去选择好的病人去做实验，也就使得RCTs的结果很难外推到真实世界中。同时由于有的RCT实验病人数目很小，很难捕捉到罕发事件，对于发病率低的病症根本无能为力。</p>
 <p>但是第一个问题可以由现如今的时效RCT来一定程度上解决。但是时效性的RCT需要的病人基数极其庞大，实验难度非常高，如果做出来就肯定能发Top 7的那种。但是对于部分临床试验来说，本身做RCT就存在着伦理、隐私等等的困难，怎么可能又去做基数如此之大的实验？</p>
 <p>这时候，观察性研究就映入了人们的眼帘。由于大量的数据记录，使得数据量得以保证，尤其是对于罕发事件的研究得到了一定程度的保障。但是观察性研究也存在着它自己的问题，也就是数据偏倚的问题。</p>
 <p>由于本身观察性研究就是平等的去记录，难免会出现两组/多组方案基线不平衡的问题，这时候直接通过结果去对方案进行评估难免是会有误差的。那么倾向性评分就可以出场了。倾向评分的配对方法可以在很大程度上消除基线不平衡的问题。同时，在进行多元回归的时候，由于共线性的存在会造成多元分析不准确，那么使用倾向性评分将共线性的变量映射到1维的变量，即降维，也可以消除共线性变量的影响。后一点在本文不做讨论。</p>
 <h2 id="The-Potential-Outcomes-Framework-and-Average-Treatment-Effects"><a href="#The-Potential-Outcomes-Framework-and-Average-Treatment-Effects" class="headerlink" title="The Potential Outcomes Framework and Average Treatment Effects"></a>The Potential Outcomes Framework and Average Treatment Effects</h2><p>我们首先来简单介绍一下在potential outcomes framework中如何评价两种治疗方案。</p>
-<p>如果我们假设给定了病人样本以及治疗方案，那么每一个病人都有一对潜在的结局：$Y_i(0)$ 和 $Y_i(1)$，分别代表着在控制方案和激活方案中。然而对于每一位病人，只能有接受一种方案，我们用 $Z$ 来表示（$Z=0$ 表示控制方案，$Z=1$ 表示激活方案）。那么最终，每位病人在接受方案后的结局可以表示为：<br>$$Y_i = Z_iY_i(1) + (1-Z_i)Y_i(0)$$<br>对于每一位病人，治疗的影响定义为$Y_i(1)-Y_i(0)$。那么平均治疗影响（ATE）定义为$E[Y_i(1)-Y_i(0)]$。ATE也就代表了在人群层面上，将没有治疗的人移到治疗方案中，会提高的平均影响程度。<br>同样，对于RCT来说，在没有数据偏倚的情况下，ATE被定义为：<br>$$E[Y_i(1) - Y_i(0)] = E[Y(1)] - E(Y(0))$$<br>虽然观察型研究同样有着和RCT一样的目的，即评估一个原因的影响，但是由于观察型数据在随机程度上，对照组和实施方案组并不是完全随机的，那么就会存在数据偏倚的问题。用数学公式来表达就是：<br>$$E[Y(1)|Z=1]\neq E[Y(1)]$$</p>
-<h2 id="倾向评分与倾向评分方法"><a href="#倾向评分与倾向评分方法" class="headerlink" title="倾向评分与倾向评分方法"></a>倾向评分与倾向评分方法</h2><p>Rosenbaum and Rubin (1983a) 定义了如果满足下列两个条件，那么方案的分配问题就可以被忽略：<br>(a) 在不同的潜在结局下，观察到的基线方差和方案的分配是独立的。(Treatment assignment is independent of the potential outcomes conditional on the observed baseline covariates.)<br>(b) 每一位病人接收不同方案的概率都不为0。(Every subject has a nonzero probability to receive either treatment.)<br>他们证明了如果方案的分配问题可以被忽略，那么倾向评分就可以帮助我们获得一个无偏倚的ATE估计。对于回归问题来说也同样适用。</p>
+<p>如果我们假设给定了病人样本以及治疗方案，那么每一个病人都有一对潜在的结局：$Y_i(0)$ 和 $Y_i(1)$，分别代表着在控制方案和激活方案中。然而对于每一位病人，只能有接受一种方案，我们用 $Z$ 来表示（$Z=0$ 表示控制方案，$Z=1$ 表示激活方案）。那么最终，每位病人在接受方案后的结局可以表示为：</p>
+<script type="math/tex; mode=display">Y_i = Z_iY_i(1) + (1-Z_i)Y_i(0)</script><p>对于每一位病人，治疗的影响定义为$Y_i(1)-Y_i(0)$。那么平均治疗影响（ATE）定义为$E[Y_i(1)-Y_i(0)]$。ATE也就代表了在人群层面上，将没有治疗的人移到治疗方案中，会提高的平均影响程度。<br>同样，对于RCT来说，在没有数据偏倚的情况下，ATE被定义为：</p>
+<script type="math/tex; mode=display">E[Y_i(1) - Y_i(0)] = E[Y(1)] - E(Y(0))</script><p>虽然观察型研究同样有着和RCT一样的目的，即评估一个原因的影响，但是由于观察型数据在随机程度上，对照组和实施方案组并不是完全随机的，那么就会存在数据偏倚的问题。用数学公式来表达就是：</p>
+<script type="math/tex; mode=display">E[Y(1)|Z=1]\neq E[Y(1)]</script><h2 id="倾向评分与倾向评分方法"><a href="#倾向评分与倾向评分方法" class="headerlink" title="倾向评分与倾向评分方法"></a>倾向评分与倾向评分方法</h2><p>Rosenbaum and Rubin (1983a) 定义了如果满足下列两个条件，那么方案的分配问题就可以被忽略：<br>(a) 在不同的潜在结局下，观察到的基线方差和方案的分配是独立的。(Treatment assignment is independent of the potential outcomes conditional on the observed baseline covariates.)<br>(b) 每一位病人接收不同方案的概率都不为0。(Every subject has a nonzero probability to receive either treatment.)<br>他们证明了如果方案的分配问题可以被忽略，那么倾向评分就可以帮助我们获得一个无偏倚的ATE估计。对于回归问题来说也同样适用。</p>
 <h3 id="方法1：-Propensity-Score-Matching-PSM"><a href="#方法1：-Propensity-Score-Matching-PSM" class="headerlink" title="方法1： Propensity Score Matching (PSM)"></a>方法1： Propensity Score Matching (PSM)</h3><p>PSM用于将treated/untreated病人组成不同的匹配集，每个匹配集里的病人都有相似的倾向评分。其中最常用的两种匹配方式就是， one-to-one 或者是 pari matching。（还有一些其他的方法，one-to-one是最常用的，如果对其他的方法感兴趣请移步原文这一节的最后一部分）</p>
 <p>一旦匹配样本确定了之后，我们就可以去评估ATE。对于连续性的结局，我们可以使用结局的均值。对于二分结局或者是二进制的结局，我们可以通过结局的比例、relative risk和NNT去评估。</p>
 <p>通过倾向评分评估了方案的影响之后，方案影响的方差以及它的统计显著性就可以被计算出来。Schafer and Kang (2008) 表明，在匹配的样本中，接受治疗和未接受治疗的病人应该被视为独立的。但是Imbens (2004) 阐述说，当使用一个模型去匹配病人时，方差应该用配对实验的计算方式去计算。本文的作者认为确实不应该是独立的，而且由于使用倾向评分配对的缘故，两种方案的病人基线是相似的，那么他们的基线方差应该来自相同的多元分布。由于混淆的存在，基线方差跟结局是有关的，那么匹配的病人更应该拥有相似的结局。这种不独立的性质在计算方差时应该考虑进去。</p>
