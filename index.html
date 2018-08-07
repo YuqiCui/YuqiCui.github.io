@@ -300,7 +300,33 @@
       
         
           
-            
+            <h1 id="在观察研究中减少数据偏倚：倾向评分（一）"><a href="#在观察研究中减少数据偏倚：倾向评分（一）" class="headerlink" title="在观察研究中减少数据偏倚：倾向评分（一）"></a>在观察研究中减少数据偏倚：倾向评分（一）</h1><p><strong>说在前面：</strong><br>本文主要参考的是文章<code>An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies</code>。因为本人是学人工智能的，不是学医的，有些医学概念可能翻译的不对，请大家谅解。写这篇文章一是为了给自己备忘，二是帮某人做个笔记。</p>
+<h2 id="文章简介"><a href="#文章简介" class="headerlink" title="文章简介"></a>文章简介</h2><p>这篇文章的介绍了4中倾向评分，这次先写到了前两种常用的，后面两种日后会进行更新。这四种倾向评分方法分别是：</p>
+<ol>
+<li>Matching on the propensity score</li>
+<li>Stratification on the propensity score</li>
+<li>Inverse probability of treatment weighting using the propensity score (IPWPS)</li>
+<li>Covariate adjustment using the propensity score<h2 id="RCT与观察性研究"><a href="#RCT与观察性研究" class="headerlink" title="RCT与观察性研究"></a>RCT与观察性研究</h2>众所周知的是，Randomized controlled trials (RCTs) 经常被作为评价治疗方案、干涉和暴露影响的一个金标准。RCTs保证了在实验过程中，基线资料没有混淆的情况。也因此RCTs的结果也会经常用来比较治疗方案的结果。</li>
+</ol>
+<p>但是RCTs在实际的应用过程中仍然存在着一些问题。第一个问题就是，RCTs由于它实验的设计需要严格的去挑选病人，本身就可能存在着选择偏倚，更由于研究者们通常倾向于去选择好的病人去做实验，也就使得RCTs的结果很难外推到真实世界中。同时由于有的RCT实验病人数目很小，很难捕捉到罕发事件，对于发病率低的病症根本无能为力。</p>
+<p>但是第一个问题可以由现如今的时效RCT来一定程度上解决。但是时效性的RCT需要的病人基数极其庞大，实验难度非常高，如果做出来就肯定能发Top 7的那种。但是对于部分临床试验来说，本身做RCT就存在着伦理、隐私等等的困难，怎么可能又去做基数如此之大的实验？</p>
+<p>这时候，观察性研究就映入了人们的眼帘。由于大量的数据记录，使得数据量得以保证，尤其是对于罕发事件的研究得到了一定程度的保障。但是观察性研究也存在着它自己的问题，也就是数据偏倚的问题。</p>
+<p>由于本身观察性研究就是平等的去记录，难免会出现两组/多组方案基线不平衡的问题，这时候直接通过结果去对方案进行评估难免是会有误差的。那么倾向性评分就可以出场了。倾向评分的配对方法可以在很大程度上消除基线不平衡的问题。同时，在进行多元回归的时候，由于共线性的存在会造成多元分析不准确，那么使用倾向性评分将共线性的变量映射到1维的变量，即降维，也可以消除共线性变量的影响。后一点在本文不做讨论。</p>
+<h2 id="The-Potential-Outcomes-Framework-and-Average-Treatment-Effects"><a href="#The-Potential-Outcomes-Framework-and-Average-Treatment-Effects" class="headerlink" title="The Potential Outcomes Framework and Average Treatment Effects"></a>The Potential Outcomes Framework and Average Treatment Effects</h2><p>我们首先来简单介绍一下在potential outcomes framework中如何评价两种治疗方案。</p>
+<p>如果我们假设给定了病人样本以及治疗方案，那么每一个病人都有一对潜在的结局：$Y_i(0)$ 和 $Y_i(1)$，分别代表着在控制方案和激活方案中。然而对于每一位病人，只能有接受一种方案，我们用 $Z$ 来表示（$Z=0$ 表示控制方案，$Z=1$ 表示激活方案）。那么最终，每位病人在接受方案后的结局可以表示为：<br>$$Y_i = Z_iY_i(1) + (1-Z_i)Y_i(0)$$<br>对于每一位病人，治疗的影响定义为$Y_i(1)-Y_i(0)$。那么平均治疗影响（ATE）定义为$E[Y_i(1)-Y_i(0)]$。ATE也就代表了在人群层面上，将没有治疗的人移到治疗方案中，会提高的平均影响程度。<br>同样，对于RCT来说，在没有数据偏倚的情况下，ATE被定义为：<br>$$E[Y_i(1) - Y_i(0)] = E[Y(1)] - E(Y(0))$$<br>虽然观察型研究同样有着和RCT一样的目的，即评估一个原因的影响，但是由于观察型数据在随机程度上，对照组和实施方案组并不是完全随机的，那么就会存在数据偏倚的问题。用数学公式来表达就是：<br>$$E[Y(1)|Z=1]\neq E[Y(1)]$$</p>
+<h2 id="倾向评分与倾向评分方法"><a href="#倾向评分与倾向评分方法" class="headerlink" title="倾向评分与倾向评分方法"></a>倾向评分与倾向评分方法</h2><p>Rosenbaum and Rubin (1983a) 定义了如果满足下列两个条件，那么方案的分配问题就可以被忽略：<br>(a) 在不同的潜在结局下，观察到的基线方差和方案的分配是独立的。(Treatment assignment is independent of the potential outcomes conditional on the observed baseline covariates.)<br>(b) 每一位病人接收不同方案的概率都不为0。(Every subject has a nonzero probability to receive either treatment.)<br>他们证明了如果方案的分配问题可以被忽略，那么倾向评分就可以帮助我们获得一个无偏倚的ATE估计。对于回归问题来说也同样适用。</p>
+<h3 id="方法1：-Propensity-Score-Matching-PSM"><a href="#方法1：-Propensity-Score-Matching-PSM" class="headerlink" title="方法1： Propensity Score Matching (PSM)"></a>方法1： Propensity Score Matching (PSM)</h3><p>PSM用于将treated/untreated病人组成不同的匹配集，每个匹配集里的病人都有相似的倾向评分。其中最常用的两种匹配方式就是， one-to-one 或者是 pari matching。（还有一些其他的方法，one-to-one是最常用的，如果对其他的方法感兴趣请移步原文这一节的最后一部分）</p>
+<p>一旦匹配样本确定了之后，我们就可以去评估ATE。对于连续性的结局，我们可以使用结局的均值。对于二分结局或者是二进制的结局，我们可以通过结局的比例、relative risk和NNT去评估。</p>
+<p>通过倾向评分评估了方案的影响之后，方案影响的方差以及它的统计显著性就可以被计算出来。Schafer and Kang (2008) 表明，在匹配的样本中，接受治疗和未接受治疗的病人应该被视为独立的。但是Imbens (2004) 阐述说，当使用一个模型去匹配病人时，方差应该用配对实验的计算方式去计算。本文的作者认为确实不应该是独立的，而且由于使用倾向评分配对的缘故，两种方案的病人基线是相似的，那么他们的基线方差应该来自相同的多元分布。由于混淆的存在，基线方差跟结局是有关的，那么匹配的病人更应该拥有相似的结局。这种不独立的性质在计算方差时应该考虑进去。</p>
+<p><strong>对于连续性变量结局，应该用配对t检验去检验显著性，对于二分结局来说，应该用McNemar’s检验去检验显著性。</strong></p>
+<p>（文中讨论了不同的PSM方法和RCT的对应关系以及意义，这里着重介绍方法，就不放了）<br>在选择不同的配对方法之前，首先应该决定两件事情。<br>第一件就是要选择是采用<strong>有放回的配对方法</strong>还是<strong>无放回的配对方法</strong>。有放回采样就是对于已经匹配的未接受治疗的病人，还能够再次被其他治疗病人匹配。因此，每个未治疗病人都可能存在于多个匹配集中。在无放回中，每个未治疗病人都只能存在于一个匹配集中。当使用有放回时，在计算方差时要考虑到一个样本是存在于多个匹配集中的。</p>
+<p>第二件是就是要选择匹配算法，是贪婪的还是优化的。贪婪算法就是首先随机选择一个治疗方案的病人，随后根据倾向评分选择与之匹配的未治疗的病人。随后一直重复这个过程直到所有的处在治疗方案中的病人都被匹配到了或者直到一个方案中没有病人可以用于匹配了为止。优化的匹配方法就是要基于倾向评分的不同最大程度上减少配对数量。但是Gu and Rosenbaum (1993)的文章证明优化的算法在平衡匹配样本上面相比于贪婪算法做的更好。</p>
+<p>那么在决定了这两件事之后，如何对病人进行配对呢？常用的方法有两种，一种呢叫做nearest neighbor matching，另一种叫做nearest neighbor matching within a specified caliper distance。其实这两种方法大同小异，都是在确定了一个选取的治疗方案病人的倾向评分之后，选择另一种方案中倾向评分最相近的病人，只是第二种方法加了一个阈值的限定，限定选取另一种方案病人的时候，它的倾向评分与治疗方案中的病人的倾向评分的差值的绝对值必须要小于一个给定的阈值。</p>
+<p>对于这个阈值的选择，Austin (2011b) 的文章中也给出了建议，使用整体倾向评分的标准差的0.2倍。</p>
+<p><strong>工具包的选择：</strong>在R语言中， 有几个工具包可供选择 Matching (Sekhon, inpress), MatchIt (Ho, Imai, King, &amp; Stuart, 2011), Optmatch (Hansen &amp; Klopfer, 2006)。</p>
+<h3 id="方法2：Stratification-on-the-Propensity-Score-（层次倾向评分）"><a href="#方法2：Stratification-on-the-Propensity-Score-（层次倾向评分）" class="headerlink" title="方法2：Stratification on the Propensity Score （层次倾向评分）"></a>方法2：Stratification on the Propensity Score （层次倾向评分）</h3><p>简单来说，层次倾向评分就是首先将病人按照倾向评分进行排序，随后将整个评分划分为K个等距的阶段，随后相同阶段内的病人进行匹配。在相同的分层中，两种方案的方差应该是近似的。在计算ATE时，也是通过加权重的方式，对每个分层进行加权平均。</p>
+<h3 id="方法3：Inverse-Probability-of-Treatment-Weighting-Using-the-Propensity-Score"><a href="#方法3：Inverse-Probability-of-Treatment-Weighting-Using-the-Propensity-Score" class="headerlink" title="方法3：Inverse Probability of Treatment Weighting Using the Propensity Score"></a>方法3：Inverse Probability of Treatment Weighting Using the Propensity Score</h3><h3 id="方法4：Covariate-Adjustment-Using-the-Propensity-Score"><a href="#方法4：Covariate-Adjustment-Using-the-Propensity-Score" class="headerlink" title="方法4：Covariate Adjustment Using the Propensity Score"></a>方法4：Covariate Adjustment Using the Propensity Score</h3><h2 id="不同倾向评分方法的比较"><a href="#不同倾向评分方法的比较" class="headerlink" title="不同倾向评分方法的比较"></a>不同倾向评分方法的比较</h2><p>综合来说，方法1和方法2中，方法1消除偏倚的能力更强。</p>
+
           
         
       
